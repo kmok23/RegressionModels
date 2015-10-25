@@ -6,8 +6,17 @@ output: html_document
 ---
 
 ##Executive Summary
-"Is an automatic or manual transmission better for MPG"  
-"Quantify the MPG difference between automatic and manual transmissions"
+Motor Trends provided fuel consumption data in 1974 for 32 automobiles along 
+with 10 aspects of automobile design and performance. The analysis below uses 
+the data to answer the questions "Is an automatic or manual transmission better 
+for MPG?" It also attempts to "quantify the MPG difference between automatic and 
+manual transmissions." Regression models are used to model the expected gas 
+mileage for automatic versus manual transmissions. Relevant and significant 
+aspects of automotive design are also included for more accurate regression. The 
+final model achieves an adjusted R-squared of 82.27% and concludes that manual 
+transmissions are better for gas mileage than automatic transmissions. The 
+average improvement in gas mileage gained by choosing manual over automatic
+transmissions is 2.084 MPG.
 
 ##Exploratory Data Analyses
 A quick preview of the Motor Trends MPG data provides the gas mileage for 
@@ -24,7 +33,7 @@ automatic transmissions at `r round(mean(mtcars$mpg[mtcars$am == 0]),2)` and the
 average MPG of manual transmissions at 
 `r round(mean(mtcars$mpg[mtcars$am == 1]),2)`.
 
-```{r echo=FALSE}
+```{r echo = FALSE, fig.height = 4, fig.width = 4}
 boxplot(mpg ~ am, data = mtcars, 
         main = "MPG by Transmission", 
         xlab = "Transmission", 
@@ -45,26 +54,83 @@ the cyl, disp, hp, and wt variables have the highest correlation with MPG. These
 variables should be considered for inclusion in the model. It is also noted that 
 cyl has very high correlation with disp and hp as well.
 
-Did the student interpret the coefficients correctly?
-Did the student do some exploratory data analyses?
-Did the student fit multiple models and detail their strategy for model selection?
-Did the student answer the questions of interest or detail why the question(s) is (are) not answerable?
-Did the student do a residual plot and some diagnostics?
-Did the student quantify the uncertainty in their conclusions and/or perform an inference correctly?
-Was the report brief (about 2 pages long) for the main body of the report and no longer than 5 with supporting appendix of figures?
-Did the report include an executive summary?
+By adding doing trial regressions with each variable added to the base model, 
+the hp variable shows to yield in the lowest RSS and p-value. Including hp 
+reduces the Residual Sum of Squares from **720.90** down to **245.44** with a 
+p-value of **2.92 x 10^-8^**.
+
+Applying the same method with am and hp held as regressors shows the wt to have 
+the next most significant impact on the mpg model. Including wt bring the 
+Residual Sum of Squares from **245.44** down to **220.55** with a p-value of 
+**0.08636**.
+
+Further analysis modeling with the remaining variables of cyl and disp do not 
+appear to add value to the model, so they are left out. The final model for mpg 
+can be shown as $mpg = \beta_0 + \beta_1 am + \beta_2 hp + \beta_3 wt$, where 
+$\beta_0 = 34.003$, $\beta_1 = 2.084$, $\beta_1 = -0.037$, and 
+$\beta_1 = -2.879$. Going from automatic to manual transmission improves the gas 
+mileage by 2.084 MPG, and not the optimistic 7.245 MPG as estimated by the 
+initial model.
+
+###Regression Diagnostics
+Below are the diagnostic plots for the final regression model.
+```{r echo=FALSE}
+mdlhpwt <- lm(mpg ~ am + hp + wt, data = mtcars)
+par(mfrow = c(2, 2))
+plot(mdlhpwt)
+```
+
+Did the student interpret the coefficients correctly?  
+Did the student do some exploratory data analyses?  
+Did the student fit multiple models and detail their strategy for model selection?  
+Did the student answer the questions of interest or detail why the question(s) is (are) not answerable?  
+Did the student do a residual plot and some diagnostics?  
+Did the student quantify the uncertainty in their conclusions and/or perform an inference correctly?  
+Was the report brief (about 2 pages long) for the main body of the report and no longer than 5 with supporting appendix of figures?  
+Did the report include an executive summary?  
 
 \pagebreak
 
 ##Appendix
 
-Correlation matrix for MPG data:
+####Correlation matrix for MPG data:
 ```{r}
 cor(mtcars)
 ```
 
-Basic linear model with am as regressor:
+####Basic linear model with am as regressor:
 ```{r}
 mdl <- lm(mpg ~ am, data = mtcars)
 summary(mdl)
+```
+
+####Multivariate model with am plus one additional regressor:
+```{r}
+mdlwt <- lm(mpg ~ am + wt, data = mtcars)
+anova(mdl, mdlwt)
+mdlcyl <- lm(mpg ~ am + cyl, data = mtcars)
+anova(mdl, mdlcyl)
+mdldisp <- lm(mpg ~ am + disp, data = mtcars)
+anova(mdl, mdldisp)
+mdlhp <- lm(mpg ~ am + hp, data = mtcars)
+anova(mdl, mdlhp)
+```
+
+####Multivariate model with am, hp, and one additional regressor:
+```{r}
+mdlhpwt <- lm(mpg ~ am + hp + wt, data = mtcars)
+summary(mdlhpwt)
+anova(mdlhp, mdlhpwt)
+mdlhpcyl <- lm(mpg ~ am + hp + cyl, data = mtcars)
+anova(mdlhp, mdlhpcyl)
+mdlhpdisp <- lm(mpg ~ am + hp + disp, data = mtcars)
+anova(mdlhp, mdlhpdisp)
+```
+
+####Multivariate model with am, hp, wt, and one additional regressor:
+```{r}
+mdlhpwtcyl <- lm(mpg ~ am + hp + wt + cyl, data = mtcars)
+anova(mdlhpwt, mdlhpwtcyl)
+mdlhpwtdisp <- lm(mpg ~ am + hp + wt + disp, data = mtcars)
+anova(mdlhpwt, mdlhpwtdisp)
 ```
